@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>D3</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+      svg {
+        width: 1000px;
+        height: 1000px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas" />
+    <script>
+      const canvas = d3.select('.canvas');
+      const svg = canvas.append('svg');
+
+      const padding = 10;
+
+      d3.csv('./data/data2.csv')
+        .then((data) => {
+          console.log(data);
+          data?.forEach((e) => {
+            svg
+              .append('circle')
+              .attr('cx', (e.위도 - 33.1) * 3000 + padding)
+              .attr('cy', (e.경도 - 126) * 300 + padding)
+              .attr('r', 5)
+              .attr('fill', 'hotpink');
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>D3</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+      rect:hover {
+        stroke: black;
+        stroke-width: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas" />
+    <script>
+      const width = 800;
+      const height = 800;
+
+      const svg = d3
+        .select('.canvas')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+      let [mt, mb, mr, ml] = [50, 50, 50, 50];
+
+      const graphWidth = width - mr - ml;
+      const graphHeight = height - mt - mb;
+
+      const graph = svg
+        .append('g')
+        .attr('width', graphWidth)
+        .attr('height', graphHeight)
+        .attr('transform', `translate(${ml}, ${mt})`);
+
+      const xAxisG = graph
+        .append('g')
+        .attr('transform', `translate(0, ${graphHeight})`);
+      const yAxisG = graph.append('g');
+
+      d3.json('./data/data4.json')
+        .then((data) => {
+          [_, ...data] = [...data];
+
+          const x = d3
+            .scaleBand()
+            .domain(data.map((item) => item.지역이름))
+            .range([0, graphWidth])
+            .padding(0.25);
+          const y = d3
+            .scaleLinear()
+            .domain([0, d3.max(data, (d) => d.확진자수)])
+            .range([graphHeight, 0]);
+
+          const bars = graph.selectAll('rect').data(data);
+          bars
+            .enter()
+            .append('rect')
+            .attr('width', x.bandwidth)
+            .attr('height', (d) => graphHeight - y(d.확진자수))
+            .attr('fill', 'hotpink')
+            .attr('x', (d) => x(d.지역이름))
+            .attr('y', (d) => y(d.확진자수));
+
+          const line = d3
+            .line()
+            .x((d) => x(d.지역이름) + x.bandwidth() / 2)
+            .y((d) => y(d.확진자수))
+            .curve(d3.curveBasis);
+
+          bars
+            .enter()
+            .append('path')
+            .attr('fill', 'none')
+            .attr('stroke', 'blue')
+            .attr('stroke-width', '2px')
+            .attr('d', line(data));
+
+          bars
+            .enter()
+            .append('text')
+            .text((d) => d.확진자수)
+            // .attr('width', x.bandwidth)
+            // .attr('height', (d) => graphHeight - y(d.확진자수))
+            .attr('fill', 'hotpink')
+            .attr('x', (d) => {
+              // 자리 수에 비례하여 계산
+              return x(d.지역이름) + 17 - String(d.확진자수).length * 3;
+            })
+            .attr('y', (d) => y(d.확진자수) - 6)
+            .style('font-size', '12px');
+
+          const xAxis = d3.axisBottom(x);
+          const yAxis = d3
+            .axisLeft(y)
+            .ticks(3)
+            .tickFormat((d) => d + '명');
+
+          xAxisG.call(xAxis);
+          yAxisG.call(yAxis);
+
+          xAxisG
+            .selectAll('text')
+            .attr('fill', 'blue')
+            .attr('transform', 'rotate(-45)')
+            .attr('text-anchor', 'end');
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    </script>
+  </body>
+</html>
